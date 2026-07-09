@@ -1,0 +1,161 @@
+CREATE TABLE `analytics_config` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`userId` int NOT NULL,
+	`ga4MeasurementId` varchar(64),
+	`ga4ApiSecret` varchar(128),
+	`gtmContainerId` varchar(64),
+	`fbPixelId` varchar(64),
+	`fbAccessToken` varchar(255),
+	`triggerPageView` boolean NOT NULL DEFAULT true,
+	`triggerScroll` boolean NOT NULL DEFAULT true,
+	`triggerClick` boolean NOT NULL DEFAULT true,
+	`triggerFormSubmit` boolean NOT NULL DEFAULT false,
+	`triggerEcommerce` boolean NOT NULL DEFAULT false,
+	`customEvents` json,
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `analytics_config_id` PRIMARY KEY(`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `anti_detect_settings` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`userId` int NOT NULL,
+	`tlsFingerprint` boolean NOT NULL DEFAULT true,
+	`ja3Randomization` boolean NOT NULL DEFAULT true,
+	`ja4Randomization` boolean NOT NULL DEFAULT true,
+	`canvasFingerprint` boolean NOT NULL DEFAULT true,
+	`webglFingerprint` boolean NOT NULL DEFAULT true,
+	`audioFingerprint` boolean NOT NULL DEFAULT true,
+	`vmSpoofing` boolean NOT NULL DEFAULT true,
+	`headlessBypass` boolean NOT NULL DEFAULT true,
+	`clientHintsSpoof` boolean NOT NULL DEFAULT true,
+	`webrtcProtection` boolean NOT NULL DEFAULT true,
+	`timezoneSpoof` boolean NOT NULL DEFAULT true,
+	`languageSpoof` boolean NOT NULL DEFAULT true,
+	`screenResolutionRandom` boolean NOT NULL DEFAULT true,
+	`fontFingerprintProtection` boolean NOT NULL DEFAULT true,
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `anti_detect_settings_id` PRIMARY KEY(`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `behavior_profiles` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`name` varchar(128) NOT NULL,
+	`slug` varchar(64) NOT NULL,
+	`description` text,
+	`minDwellTime` int NOT NULL DEFAULT 5,
+	`maxDwellTime` int NOT NULL DEFAULT 120,
+	`scrollSpeed` enum('very_slow','slow','medium','fast','very_fast') NOT NULL DEFAULT 'medium',
+	`scrollDepth` int NOT NULL DEFAULT 70,
+	`bounceRate` int NOT NULL DEFAULT 30,
+	`returningVisitorRate` int NOT NULL DEFAULT 20,
+	`clickProbability` int NOT NULL DEFAULT 50,
+	`mouseMovementIntensity` enum('low','medium','high') NOT NULL DEFAULT 'medium',
+	`pageViewsPerSession` int NOT NULL DEFAULT 3,
+	`isDefault` boolean DEFAULT false,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `behavior_profiles_id` PRIMARY KEY(`id`),
+	CONSTRAINT `behavior_profiles_slug_unique` UNIQUE(`slug`)
+);
+--> statement-breakpoint
+CREATE TABLE `proxies` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`address` varchar(255) NOT NULL,
+	`port` int NOT NULL,
+	`protocol` enum('http','https','socks5') NOT NULL DEFAULT 'http',
+	`username` varchar(128),
+	`password` varchar(128),
+	`country` varchar(64),
+	`city` varchar(128),
+	`type` enum('datacenter','residential','mobile') NOT NULL DEFAULT 'datacenter',
+	`status` enum('active','inactive','failed','testing') NOT NULL DEFAULT 'testing',
+	`latency` int,
+	`successRate` float DEFAULT 100,
+	`totalRequests` int DEFAULT 0,
+	`failedRequests` int DEFAULT 0,
+	`lastChecked` timestamp,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `proxies_id` PRIMARY KEY(`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `simulation_results` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`simulationId` int NOT NULL,
+	`workerId` int,
+	`url` text NOT NULL,
+	`keyword` varchar(255),
+	`statusCode` int,
+	`dwellTime` int,
+	`scrollDepth` int,
+	`pagesVisited` int DEFAULT 1,
+	`proxyUsed` varchar(255),
+	`userAgent` text,
+	`success` boolean NOT NULL DEFAULT true,
+	`errorMessage` text,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	CONSTRAINT `simulation_results_id` PRIMARY KEY(`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `simulations` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`userId` int NOT NULL,
+	`name` varchar(255) NOT NULL,
+	`targetUrl` text NOT NULL,
+	`keywords` json NOT NULL,
+	`durationMinutes` int NOT NULL DEFAULT 60,
+	`hitsPerMinute` int NOT NULL DEFAULT 10,
+	`maxPages` int NOT NULL DEFAULT 5,
+	`behaviorProfileId` int,
+	`proxyStrategy` enum('round_robin','random','fastest','least_used','geographic','weighted','sequential') NOT NULL DEFAULT 'round_robin',
+	`status` enum('pending','running','paused','completed','failed','cancelled') NOT NULL DEFAULT 'pending',
+	`searchEngine` enum('google','bing','yahoo','duckduckgo','all') NOT NULL DEFAULT 'google',
+	`totalHits` int NOT NULL DEFAULT 0,
+	`successHits` int NOT NULL DEFAULT 0,
+	`failedHits` int NOT NULL DEFAULT 0,
+	`startedAt` timestamp,
+	`completedAt` timestamp,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `simulations_id` PRIMARY KEY(`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `system_config` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`userId` int NOT NULL,
+	`maxConcurrentBrowsers` int NOT NULL DEFAULT 50,
+	`sessionEncryption` boolean NOT NULL DEFAULT true,
+	`encryptionAlgorithm` varchar(32) DEFAULT 'AES-256-GCM',
+	`dnsOverHttps` boolean NOT NULL DEFAULT false,
+	`dohProvider` varchar(128) DEFAULT 'https://cloudflare-dns.com/dns-query',
+	`http3Quic` boolean NOT NULL DEFAULT false,
+	`tcpFastOpen` boolean NOT NULL DEFAULT true,
+	`cpuAffinity` boolean NOT NULL DEFAULT false,
+	`numaOptimization` boolean NOT NULL DEFAULT false,
+	`circuitBreakerEnabled` boolean NOT NULL DEFAULT true,
+	`circuitBreakerThreshold` int DEFAULT 5,
+	`rateLimitEnabled` boolean NOT NULL DEFAULT true,
+	`rateLimitPerMinute` int DEFAULT 60,
+	`logLevel` enum('debug','info','warn','error') NOT NULL DEFAULT 'info',
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `system_config_id` PRIMARY KEY(`id`)
+);
+--> statement-breakpoint
+CREATE TABLE `workers` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`name` varchar(128) NOT NULL,
+	`ipAddress` varchar(45) NOT NULL,
+	`port` int NOT NULL DEFAULT 8080,
+	`status` enum('active','idle','offline','error') NOT NULL DEFAULT 'idle',
+	`cpuUsage` float DEFAULT 0,
+	`memoryUsage` float DEFAULT 0,
+	`activeBrowsers` int DEFAULT 0,
+	`maxBrowsers` int DEFAULT 10,
+	`totalTasksCompleted` int DEFAULT 0,
+	`currentLoad` float DEFAULT 0,
+	`lastHeartbeat` timestamp,
+	`region` varchar(64),
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `workers_id` PRIMARY KEY(`id`)
+);
